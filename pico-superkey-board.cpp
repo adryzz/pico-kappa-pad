@@ -32,8 +32,10 @@
 #include "Adafruit_TinyUSB_Arduino/src/Adafruit_TinyUSB.h"
 #include "TinyUSB_Mouse_and_Keyboard/TinyUSB_Mouse_and_Keyboard.h"
 
-// GPIO pin the keyswitch is on
-#define SUPERKEY_PIN 20
+// GPIO pin the keyswitches are on
+#define KEY0_PIN 20
+
+#define KEY1_PIN 21
 
 // Debounce delay (ms)
 #define DEBOUNCE_DELAY 5
@@ -49,7 +51,7 @@ static bool loopTask(repeating_timer_t *rt){
 extern Adafruit_USBD_Device USBDevice;
 
 int main() {
-    bi_decl(bi_program_description("A single superkey keyboard"));
+    bi_decl(bi_program_description("kappa-pad"));
     bi_decl(bi_program_feature("USB HID Device"));
 
     board_init(); // Sets up the onboard LED as an output
@@ -62,14 +64,21 @@ int main() {
     // Initialise a keyboard (code will wait here to be plugged in)
     Keyboard.begin();
 
-    // Initise GPIO pin as input with pull-up
-    gpio_init(SUPERKEY_PIN);
-    gpio_set_dir(SUPERKEY_PIN, GPIO_IN);
-    gpio_pull_up(SUPERKEY_PIN);
+    // Initise GPIO pins as input with pull-up
+    gpio_init(KEY0_PIN);
+    gpio_set_dir(KEY0_PIN, GPIO_IN);
+    gpio_pull_up(KEY0_PIN);
+	
+	gpio_init(KEY1_PIN);
+    gpio_set_dir(KEY1_PIN, GPIO_IN);
+    gpio_pull_up(KEY1_PIN);
 
     // Variables for detecting key press
-    bool lastState = true; // pulled up by default
-    uint32_t lastTime = to_ms_since_boot(get_absolute_time());
+    bool lastState0 = true; // pulled up by default
+	bool lastState1 = true; // pulled up by default
+	
+    uint32_t lastTime0 = to_ms_since_boot(get_absolute_time());
+	uint32_t lastTime1 = lastTime0;
 
     // Main loop
     while (1) {
@@ -77,15 +86,27 @@ int main() {
         // Check GPIO pin, and if more than DEBOUNCE_DELAY ms have passed since 
         // the key changed press release key depending on value (delay is for
         // debounce, ie to avoid rapid changes to switch value)
-        bool state = gpio_get(SUPERKEY_PIN);
+        bool state0 = gpio_get(KEY0_PIN);
+		bool state1 = gpio_get(KEY1_PIN);
+		
         uint32_t now = to_ms_since_boot(get_absolute_time());
-        if ((now - lastTime > DEBOUNCE_DELAY) && state != lastState) {
-            if (state) // The pin is pulled up by default, so the logic is backwards 
+		
+        if ((now - lastTime0 > DEBOUNCE_DELAY) && state0 != lastState0) {
+            if (state0) // The pin is pulled up by default, so the logic is backwards 
                 Keyboard.release(KEY_LEFT_GUI); // and true is released
             else
                 Keyboard.press(KEY_LEFT_GUI);
-            lastTime = now;
-            lastState = state;
+            lastTime0 = now;
+            lastState0 = state;
+        }
+		
+		if ((now - lastTime1 > DEBOUNCE_DELAY) && state1 != lastState1) {
+            if (state1) // The pin is pulled up by default, so the logic is backwards 
+                Keyboard.release(KEY_LEFT_GUI); // and true is released
+            else
+                Keyboard.press(KEY_LEFT_GUI);
+            lastTime1 = now;
+            lastState1 = state;
         }
 
     }
