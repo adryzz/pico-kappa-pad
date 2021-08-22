@@ -69,16 +69,16 @@ int main() {
     gpio_set_dir(KEY0_PIN, GPIO_IN);
     gpio_pull_up(KEY0_PIN);
 	
-	gpio_init(KEY1_PIN);
+    gpio_init(KEY1_PIN);
     gpio_set_dir(KEY1_PIN, GPIO_IN);
     gpio_pull_up(KEY1_PIN);
 
     // Variables for detecting key press
     bool lastState0 = true; // pulled up by default
-	bool lastState1 = true; // pulled up by default
+    bool lastState1 = true; // pulled up by default
 	
     uint32_t lastTime0 = to_ms_since_boot(get_absolute_time());
-	uint32_t lastTime1 = lastTime0;
+    uint32_t lastTime1 = lastTime0;
 
     // Main loop
     while (1) {
